@@ -225,10 +225,15 @@ namespace DocxTemplater.Formatter
             {
                 var parts = text.Text.Split('\n');
                 OpenXmlElement lastElement = text;
+                bool isFirst = true;
                 foreach (var part in parts.Where(x => !string.IsNullOrWhiteSpace(x)))
                 {
+                    if (!isFirst)
+                    {
+                        lastElement = lastElement.InsertAfterSelf(new Break());
+                    }
+                    else { isFirst = false; }
                     lastElement = lastElement.InsertAfterSelf(new Text(part));
-                    lastElement = lastElement.InsertAfterSelf(new Break());
                 }
 
                 text.Remove();
