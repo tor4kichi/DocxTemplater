@@ -151,7 +151,23 @@ namespace DocxTemplater
                 }
                 else
                 {
-                    markedText.RemoveAttribute("mrk", null);
+                    markedText.RemoveAttribute("mrk", null);                    
+                }
+            }
+
+            // Remove blank paragraphs that only contain line breaks.
+            for (int i = element.FirstChild.ChildElements.Count - 1; i >= 0; i--)
+            {
+                if (element.FirstChild.ChildElements[i] is not Paragraph para) { continue; }
+
+                if (para.ChildElements.Count == 2
+                    && para.ChildElements.ElementAtOrDefault(0) is ParagraphProperties
+                    && para.ChildElements.ElementAtOrDefault(1) is Run run
+                    && run.ChildElements.Count <= 1
+                    && !run.ChildElements.Any(x => x is Break)
+                    && run.InnerText == "")
+                {
+                    para.Remove();
                 }
             }
 
