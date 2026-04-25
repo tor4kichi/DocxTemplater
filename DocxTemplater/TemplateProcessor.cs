@@ -151,16 +151,16 @@ namespace DocxTemplater
                 }
                 else
                 {
-                    markedText.RemoveAttribute("mrk", null);                    
+                    markedText.RemoveAttribute("mrk", null);
                 }
             }
-            
+
             // Deletes empty paragraphs that only retain line breaks that
             // would have remained after template deletion.
             // Includes table cells.
             // Excludes intentional line breaks.
             foreach (var para in element.Descendants<Paragraph>())
-            {               
+            {
                 if (para.ChildElements.Count == 2
                     && para.ChildElements.ElementAtOrDefault(0) is ParagraphProperties
                     && para.ChildElements.ElementAtOrDefault(1) is Run run

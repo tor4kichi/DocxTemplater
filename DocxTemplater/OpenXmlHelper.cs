@@ -9,16 +9,15 @@ using System.Xml;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Drawing.Wordprocessing;
 using DocumentFormat.OpenXml.Validation;
-
+#nullable enable
 namespace DocxTemplater
 {
     public static class OpenXmlHelper
     {
         public static bool IsChildOf(this OpenXmlElement element, OpenXmlElement parent)
         {
-            ArgumentNullException.ThrowIfNull(element, nameof(element));
-            ArgumentNullException.ThrowIfNull(element);
-            ArgumentNullException.ThrowIfNull(parent);
+            element = element ?? throw new ArgumentNullException(nameof(element));
+            parent = parent ?? throw new ArgumentNullException(nameof(parent));
             var current = element.Parent;
             while (current != null)
             {
@@ -32,7 +31,7 @@ namespace DocxTemplater
             return false;
         }
 
-        public static Style FindTableStyleByName(this MainDocumentPart mainDocumentPart, string name)
+        public static Style? FindTableStyleByName(this MainDocumentPart mainDocumentPart, string name)
         {
             var part = mainDocumentPart.StyleDefinitionsPart;
             if (part == null)
@@ -42,7 +41,7 @@ namespace DocxTemplater
             return part.Styles?.Elements<Style>().FirstOrDefault(x => x.StyleId == name || x.StyleName?.Val == name);
         }
 
-        public static IEnumerable<OpenXmlElement> ElementsSameLevelAfterInDocument(this OpenXmlElement element)
+        public static IEnumerable<OpenXmlElement> ElementsSameLevelAfterInDocument(this OpenXmlElement? element)
         {
             while (element != null)
             {
@@ -55,7 +54,7 @@ namespace DocxTemplater
             }
         }
 
-        public static IEnumerable<OpenXmlElement> ElementsSameLevelBeforeInDocument(this OpenXmlElement element)
+        public static IEnumerable<OpenXmlElement> ElementsSameLevelBeforeInDocument(this OpenXmlElement? element)
         {
             while (element != null)
             {
@@ -75,10 +74,10 @@ namespace DocxTemplater
         /// <typeparam name="TElement"></typeparam>
         /// <param name="element"></param>
         /// <returns></returns>
-        public static OpenXmlElement ElementBeforeInDocument<TElement>(this OpenXmlElement element)
+        public static OpenXmlElement? ElementBeforeInDocument<TElement>(this OpenXmlElement element)
             where TElement : OpenXmlElement
         {
-            var parent = element.Parent;
+            OpenXmlElement? parent = element.Parent;
             while (parent != null)
             {
                 var result = (parent?.Descendants<TElement>()).LastOrDefault(x => x.IsBefore(element));
@@ -86,12 +85,12 @@ namespace DocxTemplater
                 {
                     return result;
                 }
-                parent = parent.PreviousSibling() ?? parent.Parent;
+                parent = parent!.PreviousSibling() ?? parent.Parent;
             }
             return null;
         }
 
-        public static TElement ElementAfterInDocument<TElement>(this OpenXmlElement element)
+        public static TElement? ElementAfterInDocument<TElement>(this OpenXmlElement element)
             where TElement : OpenXmlElement
         {
             var parent = element.Parent;
@@ -102,7 +101,7 @@ namespace DocxTemplater
                 {
                     return result;
                 }
-                parent = parent.NextSibling() ?? parent.Parent;
+                parent = parent!.NextSibling() ?? parent.Parent;
             }
             return null;
         }
@@ -115,7 +114,7 @@ namespace DocxTemplater
             };
             int bulletAbstractNumId = numbering.Elements<AbstractNum>()
                 .Where(x => x.AbstractNumberId != null)
-                .Select(x => x.AbstractNumberId.Value).DefaultIfEmpty(0).Max() + 1;
+                .Select(x => x.AbstractNumberId!.Value).DefaultIfEmpty(0).Max() + 1;
             abstractNum.AbstractNumberId = bulletAbstractNumId;
 
             return numbering.InsertAfterLastChildOfSameType(abstractNum);
@@ -146,10 +145,10 @@ namespace DocxTemplater
         }
 
 
-        public static OpenXmlElement FindCommonParent(this OpenXmlElement element, OpenXmlElement otherElement)
+        public static OpenXmlElement? FindCommonParent(this OpenXmlElement element, OpenXmlElement otherElement)
         {
-            ArgumentNullException.ThrowIfNull(element);
-            ArgumentNullException.ThrowIfNull(otherElement);
+            element = element ?? throw new ArgumentNullException(nameof(element));
+            otherElement = otherElement ?? throw new ArgumentNullException(nameof(otherElement));
             var current = element.Parent;
             while (current != null)
             {
@@ -325,7 +324,7 @@ namespace DocxTemplater
             return xmldoc.ToString();
         }
 
-        public static string ToPrettyPrintXml(this OpenXmlElement element)
+        public static string? ToPrettyPrintXml(this OpenXmlElement element)
         {
             if (element == null)
             {
@@ -335,7 +334,7 @@ namespace DocxTemplater
             return xmldoc.ToString();
         }
 
-        public static string PrintTree(this OpenXmlElement element, StringBuilder sb = null, int indent = 0)
+        public static string PrintTree(this OpenXmlElement element, StringBuilder? sb = null, int indent = 0)
         {
             sb ??= new StringBuilder();
             sb.AppendLine($"{new string(' ', indent)}parent ({element.Parent?.GetType()?.Name}){element.GetType().Name}({element.GetType().Namespace})");
@@ -366,7 +365,7 @@ namespace DocxTemplater
             return current;
         }
 
-        public static T GetFirstAncestor<T>(this OpenXmlElement element)
+        public static T? GetFirstAncestor<T>(this OpenXmlElement element)
         where T : OpenXmlElement
         {
             var current = element.Parent;
@@ -444,7 +443,7 @@ namespace DocxTemplater
             return doc
                 .RootElement
                 .Descendants<DocProperties>()
-                .Max(x => (uint?)x.Id) ?? 0;
+                .Max(x => (uint?)x.Id!) ?? 0;
         }
 
         public static void ValidateOpenXmlElement(this OpenXmlElement element)
@@ -456,9 +455,9 @@ namespace DocxTemplater
             foreach (var rInfo in result)
             {
                 sb.AppendLine(rInfo.Description);
-                sb.AppendLine($"Path: {rInfo.Path.XPath}");
-                sb.AppendLine($"Node: {rInfo.Node} - {rInfo.RelatedNode.ToPrettyPrintXml()}");
-                sb.AppendLine($"RelatedNode: {rInfo.RelatedNode} - {rInfo.RelatedNode.ToPrettyPrintXml()}");
+                sb.AppendLine($"Path: {rInfo.Path!.XPath}");
+                sb.AppendLine($"Node: {rInfo.Node} - {rInfo.RelatedNode!.ToPrettyPrintXml()}");
+                sb.AppendLine($"RelatedNode: {rInfo.RelatedNode} - {rInfo.RelatedNode!.ToPrettyPrintXml()}");
                 sb.AppendLine();
             }
             if (result.Any())
@@ -472,7 +471,7 @@ namespace DocxTemplater
             XmlDocument xmlDoc = new();
             xmlDoc.LoadXml(openXmlString);
             var localName = xmlDoc.DocumentElement.LocalName;
-            OpenXmlElement element = null;
+            OpenXmlElement? element = null;
             switch (localName)
             {
                 case "p":

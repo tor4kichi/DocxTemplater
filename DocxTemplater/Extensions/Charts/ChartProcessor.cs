@@ -17,6 +17,15 @@ using Values = DocumentFormat.OpenXml.Drawing.Charts.Values;
 
 namespace DocxTemplater.Extensions.Charts
 {
+    public static class S
+    {
+        public static bool TryAdd<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key, TValue value)
+        {
+            if (dict.ContainsKey(key)) { return false; }
+            dict.Add(key, value);
+            return true;
+        }
+    }
     public class ChartProcessor : ITemplateProcessorExtension
     {
         private readonly Dictionary<string, ChartReference> m_insertedChartReferences = new();
@@ -35,7 +44,7 @@ namespace DocxTemplater.Extensions.Charts
                 var charts = newContent.SelectMany(x => x.Descendants<ChartReference>());
                 foreach (var chartReference in charts)
                 {
-                    if (!m_insertedChartReferences.TryAdd(chartReference.Id, chartReference))
+                    if (!m_insertedChartReferences.TryAdd(chartReference.Id.Value, chartReference))
                     {
                         // if this chart already used - clone it
                         CloneChart(chartReference, mainDocumentPart);
